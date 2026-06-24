@@ -1,0 +1,30 @@
+spring:
+  application:
+    name: config
+  profiles:
+#    đọc config từ local filesystem
+    active: native
+  cloud:
+    config:
+      server:
+        native:
+#          Config Server sẽ tìm file config ở các chỗ này.
+#          search-locations là cách để cùng một app chạy được cả local và docker mà ít sửa code/config hơn.
+          search-locations:
+            - file:./config-repo
+            - file:../environment/config-repo
+            - file:/app/config-repo
+server:
+  port: 8888
+
+eureka:
+  client:
+    service-url:
+#      Nói cho config server biết Eureka server nằm ở đâu
+      defaultZone: http://localhost:8761/eureka/
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics

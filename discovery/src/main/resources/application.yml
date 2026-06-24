@@ -1,0 +1,27 @@
+spring:
+  application:
+    name: discovery
+#  Discovery có thể lấy config từ Config Server.
+#  Nhưng vì discovery thường chạy trước config server, ta dùng: optional:
+  config:
+    import: optional:configserver:http://localhost:8888
+#  Eureka Server thường chạy port 8761.
+server:
+  port: 8761
+eureka:
+  client:
+#  Vì chính nó là registry server.
+#  Nếu để true, nó sẽ cố tự đăng ký với chính nó.
+    register-with-eureka: false
+#    Vì nó không cần fetch registry từ server khác.
+#    Trong mô hình cluster Eureka nhiều node thì khác, nhưng Phase 1 chưa cần.
+    fetch-registry: false
+#Cho phép check health:
+#  /actuator/health
+#  /actuator/info
+#  /actuator/metrics
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics

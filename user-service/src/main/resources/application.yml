@@ -1,0 +1,46 @@
+spring:
+  application:
+    # Tên service.
+    name: user-service
+
+  datasource:
+    # Nói với Spring:
+    # dùng MySQL local
+    # DB: service_template_db
+    # nếu DB chưa có thì tạo
+    url: jdbc:mysql://localhost:3306/user_service_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+    username: root
+    password: root
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+
+  flyway:
+    # Bật Flyway và quét file migration trong classpath
+    enabled: true
+    locations: classpath:db/migration
+
+server:
+  port: 8091
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+
+#eureka:
+#  client:
+#    enabled: false #không đăng ký eureka
+
+#Đăng ký eureka
+eureka:
+  instance:
+    prefer-ip-address: true
+    hostname: localhost
+    instance-id: localhost:user-service:8091
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/

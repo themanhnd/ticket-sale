@@ -1,0 +1,60 @@
+services:
+  redis:
+    image: redis:7.2-alpine
+    container_name: ticket-redis
+    profiles: ["infra", "platform"] #thuộc cả profile infra và platform
+    ports:
+      - "6379:6379" #expose port 6379
+
+  discovery:
+#    build image từ discovery/Dockerfile
+    build:
+      context: .
+#      container tên ticket-discovery
+      dockerfile: discovery/Dockerfile
+    container_name: ticket-discovery
+#    dùng profile docker
+    profiles: ["platform"]
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+#      port 8761 expose ra host
+    ports:
+      - "8761:8761"
+
+  config:
+    build:
+      context: .
+      dockerfile: config/Dockerfile
+    container_name: ticket-config
+    profiles: ["platform"]
+    environment:
+      SPRING_PROFILES_ACTIVE: native,docker
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery:8761/eureka/
+    ports:
+      - "8888:8888"
+#      - folder local: environment/config-repo
+#      - mount vào container: /app/config-repo
+#      - read-only: ro
+    volumes:
+      - ./environment/config-repo:/app/config-repo:ro
+    depends_on:
+      - discovery
+
+  gateway:
+    build:
+      context: .
+      dockerfile: gateway/Dockerfile
+    container_name: ticket-gateway
+    profiles: ["platform"]
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_CONFIG_IMPORT: optional:configserver:http://config:8888
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery:8761/eureka/
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    ports:
+      - "8080:8080"
+    depends_on:
+      - redis
+      - discovery
+      - config
