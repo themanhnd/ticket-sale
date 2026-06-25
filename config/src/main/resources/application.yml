@@ -11,6 +11,7 @@ spring:
 #          Config Server sẽ tìm file config ở các chỗ này.
 #          search-locations là cách để cùng một app chạy được cả local và docker mà ít sửa code/config hơn.
           search-locations:
+            - file:./environment/config-repo
             - file:./config-repo
             - file:../environment/config-repo
             - file:/app/config-repo
