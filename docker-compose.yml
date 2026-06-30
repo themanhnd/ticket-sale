@@ -1,60 +1,115 @@
 services:
   redis:
-    image: redis:7.2-alpine
+    image: redis:${REDIS_VERSION:-7.2-alpine}
     container_name: ticket-redis
-    profiles: ["infra", "platform"] #thuộc cả profile infra và platform
+    profiles: ["infra", "platform"]
     ports:
-      - "6379:6379" #expose port 6379
+      - "${REDIS_PORT:-6379}:6379"
+
+  mysql:
+    image: mysql:${MYSQL_VERSION:-8.4}
+    container_name: ticket-mysql
+    profiles: ["infra", "platform"]
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-user_service_db}
+    ports:
+      - "${MYSQL_PORT:-3306}:3306"
+    volumes:
+      - ticket-mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -p$${MYSQL_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
 
   discovery:
-#    build image từ discovery/Dockerfile
     build:
-      context: .
-#      container tên ticket-discovery
-      dockerfile: discovery/Dockerfile
+      context: ./discovery
+      dockerfile: Dockerfile
     container_name: ticket-discovery
-#    dùng profile docker
     profiles: ["platform"]
     environment:
       SPRING_PROFILES_ACTIVE: docker
-#      port 8761 expose ra host
     ports:
-      - "8761:8761"
+      - "${DISCOVERY_PORT:-8761}:8761"
 
   config:
     build:
-      context: .
-      dockerfile: config/Dockerfile
+      context: ./config
+      dockerfile: Dockerfile
+    restart: unless-stopped
     container_name: ticket-config
     profiles: ["platform"]
     environment:
       SPRING_PROFILES_ACTIVE: native,docker
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery:8761/eureka/
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_DEFAULT_ZONE:-http://discovery:8761/eureka/}
     ports:
-      - "8888:8888"
-#      - folder local: environment/config-repo
-#      - mount vào container: /app/config-repo
-#      - read-only: ro
+      - "${CONFIG_PORT:-8888}:8888"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8888/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
     volumes:
       - ./environment/config-repo:/app/config-repo:ro
     depends_on:
       - discovery
 
+  user-service:
+    build:
+      context: ./user-service
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    container_name: ticket-user-service
+    profiles: ["platform"]
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_CONFIG_IMPORT: ${CONFIG_IMPORT:-configserver:http://config:8888}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_DEFAULT_ZONE:-http://discovery:8761/eureka/}
+    ports:
+      - "${USER_SERVICE_PORT:-8091}:8091"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8091/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    depends_on:
+      mysql:
+        condition: service_healthy
+      discovery:
+        condition: service_started
+      config:
+        condition: service_healthy
   gateway:
     build:
-      context: .
-      dockerfile: gateway/Dockerfile
+      context: ./gateway
+      dockerfile: Dockerfile
+    restart: unless-stopped
     container_name: ticket-gateway
     profiles: ["platform"]
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      SPRING_CONFIG_IMPORT: optional:configserver:http://config:8888
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery:8761/eureka/
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
+      SPRING_CONFIG_IMPORT: ${CONFIG_IMPORT:-configserver:http://config:8888}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_DEFAULT_ZONE:-http://discovery:8761/eureka/}
+      REDIS_HOST: ${REDIS_HOST:-redis}
+      REDIS_PORT: ${REDIS_PORT:-6379}
     ports:
-      - "8080:8080"
+      - "${GATEWAY_PORT:-8080}:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
     depends_on:
-      - redis
-      - discovery
-      - config
+      redis:
+        condition: service_started
+      discovery:
+        condition: service_started
+      config:
+        condition: service_healthy
+      user-service:
+        condition: service_healthy
+
+volumes:
+  ticket-mysql-data:

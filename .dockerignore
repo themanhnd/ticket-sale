@@ -1,0 +1,24 @@
+.git
+.idea
+*.iml
+
+**/src/test
+docs
+README.md
+
+**/target/classes
+**/target/test-classes
+**/target/generated-sources
+**/target/generated-test-sources
+**/target/maven-status
+**/target/surefire-reports
+**/target/*.original
+
+# Bỏ toàn bộ jar cũ trước
+**/target/*.jar
+
+# Giữ lại đúng 4 jar cần build image
+!discovery/target/discovery-1.0-SNAPSHOT.jar
+!config/target/config-1.0-SNAPSHOT.jar
+!gateway/target/gateway-1.0-SNAPSHOT.jar
+!user-service/target/user-service-1.0-SNAPSHOT.jar

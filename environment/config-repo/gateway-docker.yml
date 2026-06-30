@@ -6,6 +6,13 @@ spring:
     redis:
       host: redis
       port: 6379
+  cloud:
+    gateway:
+      routes:
+        - id: user-service
+          uri: lb://USER-SERVICE
+          predicates:
+            - Path=/api/users/**
 
 eureka:
   client:
