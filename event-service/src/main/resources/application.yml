@@ -1,0 +1,15 @@
+spring:
+  application:
+    #    tên service để config server và eureka nhận diện
+    name: event-service
+  config:
+    import: optional:configserver:http://localhost:8888
+#  port local khi chạy trực tiếp
+server:
+  port: 8092
+#  mở actuator health để Docker healthcheck dùng
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
