@@ -1,0 +1,18 @@
+#- spring.config.import: nhập cấu hình từ nguồn bên ngoài.
+#- configserver:: nguồn là Spring Cloud Config Server.
+#- http://localhost:8888: địa chỉ Config Server.
+#- optional:: Config Server không bắt buộc. Không kết nối được thì ứng dụng vẫn khởi động bằng cấu hình local.
+spring:
+  application:
+    name: inventory-service
+  config:
+    import: optional:configserver:http://localhost:8888
+
+server:
+  port: 8093
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus

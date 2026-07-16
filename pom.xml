@@ -27,6 +27,7 @@
         <module>gateway</module>
         <module>user-service</module>
         <module>event-service</module>
+        <module>inventory-service</module>
         <module>service-template</module>
     </modules>
 

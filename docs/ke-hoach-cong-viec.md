@@ -1,71 +1,71 @@
-# Kế hoạch công việc - Ticket Sale Microservices
+# Káº¿ hoáº¡ch cÃ´ng viá»‡c - Ticket Sale Microservices
 
-## 1. Mục tiêu cuối cùng
+## 1. Má»¥c tiÃªu cuá»‘i cÃ¹ng
 
-Xây dựng lại thủ công một hệ thống bán vé theo kiến trúc microservices, chạy được ở local và Docker local, sau đó mở rộng dần theo luồng nghiệp vụ thật:
+XÃ¢y dá»±ng láº¡i thá»§ cÃ´ng má»™t há»‡ thá»‘ng bÃ¡n vÃ© theo kiáº¿n trÃºc microservices, cháº¡y Ä‘Æ°á»£c á»Ÿ local vÃ  Docker local, sau Ä‘Ã³ má»Ÿ rá»™ng dáº§n theo luá»“ng nghiá»‡p vá»¥ tháº­t:
 
-- người dùng xem sự kiện
-- kiểm tra tồn kho vé
-- tạo order
-- thanh toán
-- hết hạn thanh toán thì tự hủy order
-- giải phóng vé đã giữ
-- các service giao tiếp an toàn qua event
+- ngÆ°á»i dÃ¹ng xem sá»± kiá»‡n
+- kiá»ƒm tra tá»“n kho vÃ©
+- táº¡o order
+- thanh toÃ¡n
+- háº¿t háº¡n thanh toÃ¡n thÃ¬ tá»± há»§y order
+- giáº£i phÃ³ng vÃ© Ä‘Ã£ giá»¯
+- cÃ¡c service giao tiáº¿p an toÃ n qua event
 
-Mục tiêu học đi kèm:
+Má»¥c tiÃªu há»c Ä‘i kÃ¨m:
 
-- hiểu vai trò từng service nền
-- hiểu cách config tập trung hoạt động
-- hiểu service discovery và gateway route
-- hiểu cách tách domain service
-- hiểu vì sao cần Flyway, idempotency, outbox, consumer idempotent
-- hiểu cách đi từ project nhỏ đến kiến trúc production-ready hơn
-
----
-
-## 2. Nguyên tắc làm dự án
-
-- ưu tiên chạy ổn ở local và Docker local trước
-- mỗi phase phải có đầu ra kiểm chứng được
-- build/test pass rồi mới sang bước sau
-- thêm service theo nhu cầu domain, không thêm cho đủ số lượng
-- config thay đổi thì ưu tiên restart service ở giai đoạn hiện tại
-- production sẽ làm sau, không tối ưu sớm khi local chưa vững
+- hiá»ƒu vai trÃ² tá»«ng service ná»n
+- hiá»ƒu cÃ¡ch config táº­p trung hoáº¡t Ä‘á»™ng
+- hiá»ƒu service discovery vÃ  gateway route
+- hiá»ƒu cÃ¡ch tÃ¡ch domain service
+- hiá»ƒu vÃ¬ sao cáº§n Flyway, idempotency, outbox, consumer idempotent
+- hiá»ƒu cÃ¡ch Ä‘i tá»« project nhá» Ä‘áº¿n kiáº¿n trÃºc production-ready hÆ¡n
 
 ---
 
-## 3. Tổng quan các phase
+## 2. NguyÃªn táº¯c lÃ m dá»± Ã¡n
 
-| Phase | Tên | Mục tiêu |
+- Æ°u tiÃªn cháº¡y á»•n á»Ÿ local vÃ  Docker local trÆ°á»›c
+- má»—i phase pháº£i cÃ³ Ä‘áº§u ra kiá»ƒm chá»©ng Ä‘Æ°á»£c
+- build/test pass rá»“i má»›i sang bÆ°á»›c sau
+- thÃªm service theo nhu cáº§u domain, khÃ´ng thÃªm cho Ä‘á»§ sá»‘ lÆ°á»£ng
+- config thay Ä‘á»•i thÃ¬ Æ°u tiÃªn restart service á»Ÿ giai Ä‘oáº¡n hiá»‡n táº¡i
+- production sáº½ lÃ m sau, khÃ´ng tá»‘i Æ°u sá»›m khi local chÆ°a vá»¯ng
+
+---
+
+## 3. Tá»•ng quan cÃ¡c phase
+
+| Phase | TÃªn | Má»¥c tiÃªu |
 |---|---|---|
-| 1 | Platform base | Dựng khung multi-module và service nền |
-| 1.5 | Service template | Tạo mẫu service chuẩn để clone nhanh |
-| 2 | User service | Dựng service nghiệp vụ đầu tiên |
-| 3 | Config + Discovery + Gateway flow | Nối các service nền thành luồng hoàn chỉnh |
-| 4 | Docker local platform | Chạy full stack bằng Docker Compose |
-| 5 | Env và cấu hình local | Làm sạch cách chạy local và Docker local |
-| 6 | Event service | Dựng domain service thứ hai |
-| 7 | Inventory service | Quản lý tồn kho vé |
-| 8 | Order service | Tạo order và quản lý vòng đời order |
-| 9 | Idempotency API | Chống double click / request lặp |
-| 10 | Payment service | Mô phỏng thanh toán |
-| 11 | Kafka + Outbox | Giao tiếp event an toàn hơn |
-| 12 | Consumer idempotent | Chịu được at-least-once delivery |
-| 13 | Timeout + release inventory | Hủy order hết hạn và trả lại vé |
-| 14 | Observability cơ bản | Metrics, health, logs, dashboard cơ bản |
-| 15 | Hardening và tài liệu | Dọn nợ kỹ thuật, chuẩn hóa, ghi docs |
+| 1 | Platform base | Dá»±ng khung multi-module vÃ  service ná»n |
+| 1.5 | Service template | Táº¡o máº«u service chuáº©n Ä‘á»ƒ clone nhanh |
+| 2 | User service | Dá»±ng service nghiá»‡p vá»¥ Ä‘áº§u tiÃªn |
+| 3 | Config + Discovery + Gateway flow | Ná»‘i cÃ¡c service ná»n thÃ nh luá»“ng hoÃ n chá»‰nh |
+| 4 | Docker local platform | Cháº¡y full stack báº±ng Docker Compose |
+| 5 | Env vÃ  cáº¥u hÃ¬nh local | LÃ m sáº¡ch cÃ¡ch cháº¡y local vÃ  Docker local |
+| 6 | Event service | Dá»±ng domain service thá»© hai |
+| 7 | Inventory service | Quáº£n lÃ½ tá»“n kho vÃ© |
+| 8 | Order service | Táº¡o order vÃ  quáº£n lÃ½ vÃ²ng Ä‘á»i order |
+| 9 | Idempotency API | Chá»‘ng double click / request láº·p |
+| 10 | Payment service | MÃ´ phá»ng thanh toÃ¡n |
+| 11 | Kafka + Outbox | Giao tiáº¿p event an toÃ n hÆ¡n |
+| 12 | Consumer idempotent | Chá»‹u Ä‘Æ°á»£c at-least-once delivery |
+| 13 | Timeout + release inventory | Há»§y order háº¿t háº¡n vÃ  tráº£ láº¡i vÃ© |
+| 14 | Observability cÆ¡ báº£n | Metrics, health, logs, dashboard cÆ¡ báº£n |
+| 15 | Hardening vÃ  tÃ i liá»‡u | Dá»n ná»£ ká»¹ thuáº­t, chuáº©n hÃ³a, ghi docs |
 
 ---
 
-## 4. Chi tiết từng phase
+## 4. Chi tiáº¿t tá»«ng phase
 
 ## Phase 1 - Platform base
 
-### Mục tiêu
+### Má»¥c tiÃªu
 
-Dựng nền monorepo Maven multi-module để chứa các service.
+Dá»±ng ná»n monorepo Maven multi-module Ä‘á»ƒ chá»©a cÃ¡c service.
 
-### Thành phần
+### ThÃ nh pháº§n
 
 - root Maven project
 - `common`
@@ -75,20 +75,20 @@ Dựng nền monorepo Maven multi-module để chứa các service.
 
 ### Done khi
 
-- root build được
-- từng module chạy độc lập được
-- không lỗi dependency cha/con
+- root build Ä‘Æ°á»£c
+- tá»«ng module cháº¡y Ä‘á»™c láº­p Ä‘Æ°á»£c
+- khÃ´ng lá»—i dependency cha/con
 
 ### Checklist
 
-- [x] Tạo root `pom.xml`
-- [x] Tạo module `common`
-- [x] Tạo module `discovery`
-- [x] Tạo module `config`
-- [x] Tạo module `gateway`
-- [x] Sửa lỗi Maven module path/dependency
+- [x] Táº¡o root `pom.xml`
+- [x] Táº¡o module `common`
+- [x] Táº¡o module `discovery`
+- [x] Táº¡o module `config`
+- [x] Táº¡o module `gateway`
+- [x] Sá»­a lá»—i Maven module path/dependency
 
-### Trạng thái hiện tại
+### Tráº¡ng thÃ¡i hiá»‡n táº¡i
 
 - `DONE`
 
@@ -96,11 +96,11 @@ Dựng nền monorepo Maven multi-module để chứa các service.
 
 ## Phase 1.5 - Service template
 
-### Mục tiêu
+### Má»¥c tiÃªu
 
-Tạo một service mẫu đủ chuẩn để clone nhanh cho các domain service sau này.
+Táº¡o má»™t service máº«u Ä‘á»§ chuáº©n Ä‘á»ƒ clone nhanh cho cÃ¡c domain service sau nÃ y.
 
-### Thành phần
+### ThÃ nh pháº§n
 
 - Spring Boot web
 - validation
@@ -108,25 +108,25 @@ Tạo một service mẫu đủ chuẩn để clone nhanh cho các domain servic
 - Flyway
 - actuator
 - Eureka client
-- test controller cơ bản
+- test controller cÆ¡ báº£n
 - Dockerfile
 
 ### Done khi
 
 - `service-template` build/test pass
-- có migration mẫu
-- có API mẫu
-- có Dockerfile chạy được
+- cÃ³ migration máº«u
+- cÃ³ API máº«u
+- cÃ³ Dockerfile cháº¡y Ä‘Æ°á»£c
 
 ### Checklist
 
-- [x] Tạo module `service-template`
-- [x] Thêm migration base
-- [x] Thêm controller/service/repository mẫu
-- [x] Thêm test web cơ bản
-- [x] Sửa lỗi compile/test của template
+- [x] Táº¡o module `service-template`
+- [x] ThÃªm migration base
+- [x] ThÃªm controller/service/repository máº«u
+- [x] ThÃªm test web cÆ¡ báº£n
+- [x] Sá»­a lá»—i compile/test cá»§a template
 
-### Trạng thái hiện tại
+### Tráº¡ng thÃ¡i hiá»‡n táº¡i
 
 - `DONE`
 
@@ -134,13 +134,13 @@ Tạo một service mẫu đủ chuẩn để clone nhanh cho các domain servic
 
 ## Phase 2 - User service
 
-### Mục tiêu
+### Má»¥c tiÃªu
 
-Clone từ template thành service nghiệp vụ đầu tiên: `user-service`.
+Clone tá»« template thÃ nh service nghiá»‡p vá»¥ Ä‘áº§u tiÃªn: `user-service`.
 
 ### Domain
 
-- user có `email`, `fullName`
+- user cÃ³ `email`, `fullName`
 
 ### API
 
@@ -150,22 +150,22 @@ Clone từ template thành service nghiệp vụ đầu tiên: `user-service`.
 ### Done khi
 
 - `user-service` build/test pass
-- chạy local được
-- đi qua gateway được
-- chạy Docker local được
+- cháº¡y local Ä‘Æ°á»£c
+- Ä‘i qua gateway Ä‘Æ°á»£c
+- cháº¡y Docker local Ä‘Æ°á»£c
 
 ### Checklist
 
 - [x] Clone `service-template` -> `user-service`
-- [x] Đổi package/class/domain
-- [x] Tạo migration `users`
-- [x] Sửa request/response/repository/service/controller
-- [x] Thêm config repo cho `user-service`
-- [x] Thêm route gateway cho `/api/users/**`
-- [x] Chạy local thành công
-- [x] Chạy Docker local thành công
+- [x] Äá»•i package/class/domain
+- [x] Táº¡o migration `users`
+- [x] Sá»­a request/response/repository/service/controller
+- [x] ThÃªm config repo cho `user-service`
+- [x] ThÃªm route gateway cho `/api/users/**`
+- [x] Cháº¡y local thÃ nh cÃ´ng
+- [x] Cháº¡y Docker local thÃ nh cÃ´ng
 
-### Trạng thái hiện tại
+### Tráº¡ng thÃ¡i hiá»‡n táº¡i
 
 - `DONE`
 
@@ -173,32 +173,32 @@ Clone từ template thành service nghiệp vụ đầu tiên: `user-service`.
 
 ## Phase 3 - Config + Discovery + Gateway flow
 
-### Mục tiêu
+### Má»¥c tiÃªu
 
-Hiểu và chạy được luồng service lấy config, đăng ký Eureka, gateway route theo `lb://SERVICE-NAME`.
+Hiá»ƒu vÃ  cháº¡y Ä‘Æ°á»£c luá»“ng service láº¥y config, Ä‘Äƒng kÃ½ Eureka, gateway route theo `lb://SERVICE-NAME`.
 
-### Kiến thức cần nắm
+### Kiáº¿n thá»©c cáº§n náº¯m
 
-- `config-service` cấp config tập trung
-- `discovery` giữ danh bạ service
-- `gateway` route request vào service đích
-- service tự lấy config rồi tự đăng ký chính nó vào discovery
+- `config-service` cáº¥p config táº­p trung
+- `discovery` giá»¯ danh báº¡ service
+- `gateway` route request vÃ o service Ä‘Ã­ch
+- service tá»± láº¥y config rá»“i tá»± Ä‘Äƒng kÃ½ chÃ­nh nÃ³ vÃ o discovery
 
 ### Done khi
 
-- `config` chạy ổn
-- `discovery` chạy ổn
-- `gateway` gọi được `user-service` qua Eureka
+- `config` cháº¡y á»•n
+- `discovery` cháº¡y á»•n
+- `gateway` gá»i Ä‘Æ°á»£c `user-service` qua Eureka
 
 ### Checklist
 
-- [x] Tạo config repo `dev`/`docker`
-- [x] Hiểu `spring.config.import`
-- [x] Hiểu `lb://USER-SERVICE`
-- [x] Gateway route hoạt động
-- [x] Eureka hiển thị service đăng ký
+- [x] Táº¡o config repo `dev`/`docker`
+- [x] Hiá»ƒu `spring.config.import`
+- [x] Hiá»ƒu `lb://USER-SERVICE`
+- [x] Gateway route hoáº¡t Ä‘á»™ng
+- [x] Eureka hiá»ƒn thá»‹ service Ä‘Äƒng kÃ½
 
-### Trạng thái hiện tại
+### Tráº¡ng thÃ¡i hiá»‡n táº¡i
 
 - `DONE`
 
@@ -206,11 +206,11 @@ Hiểu và chạy được luồng service lấy config, đăng ký Eureka, gate
 
 ## Phase 4 - Docker local platform
 
-### Mục tiêu
+### Má»¥c tiÃªu
 
-Chạy full stack bằng Docker Compose local, không cần bật tay từng service.
+Cháº¡y full stack báº±ng Docker Compose local, khÃ´ng cáº§n báº­t tay tá»«ng service.
 
-### Thành phần
+### ThÃ nh pháº§n
 
 - `mysql`
 - `redis`
@@ -221,40 +221,40 @@ Chạy full stack bằng Docker Compose local, không cần bật tay từng ser
 
 ### Sub-phase
 
-#### 4.1 - Dựng Compose base
-- [x] Có `docker-compose.yml`
-- [x] Build image cho từng module
-- [x] Up platform local được
+#### 4.1 - Dá»±ng Compose base
+- [x] CÃ³ `docker-compose.yml`
+- [x] Build image cho tá»«ng module
+- [x] Up platform local Ä‘Æ°á»£c
 
 #### 4.2 - Startup order
-- [x] `depends_on` hợp lý
-- [x] `config` có healthcheck
-- [x] `mysql` có healthcheck
-- [x] `user-service` chờ config/mysql
+- [x] `depends_on` há»£p lÃ½
+- [x] `config` cÃ³ healthcheck
+- [x] `mysql` cÃ³ healthcheck
+- [x] `user-service` chá» config/mysql
 
-#### 4.3 - Readiness hoàn chỉnh
-- [x] `user-service` có healthcheck
-- [x] `gateway` có healthcheck
-- [x] `gateway` chờ backend healthy
+#### 4.3 - Readiness hoÃ n chá»‰nh
+- [x] `user-service` cÃ³ healthcheck
+- [x] `gateway` cÃ³ healthcheck
+- [x] `gateway` chá» backend healthy
 
 ### Done khi
 
-- `docker compose --profile platform ps` thấy service nền `healthy`
-- gọi được API qua gateway trong Docker local
+- `docker compose --profile platform ps` tháº¥y service ná»n `healthy`
+- gá»i Ä‘Æ°á»£c API qua gateway trong Docker local
 
-### Trạng thái hiện tại
+### Tráº¡ng thÃ¡i hiá»‡n táº¡i
 
 - `DONE`
 
 ---
 
-## Phase 5 - Env và cấu hình local
+## Phase 5 - Env vÃ  cáº¥u hÃ¬nh local
 
-### Mục tiêu
+### Má»¥c tiÃªu
 
-Làm sạch cách quản lý biến môi trường để local và Docker local dễ theo dõi.
+LÃ m sáº¡ch cÃ¡ch quáº£n lÃ½ biáº¿n mÃ´i trÆ°á»ng Ä‘á»ƒ local vÃ  Docker local dá»… theo dÃµi.
 
-### Thành phần
+### ThÃ nh pháº§n
 
 - `.env`
 - `.env.example`
@@ -264,20 +264,20 @@ Làm sạch cách quản lý biến môi trường để local và Docker local 
 
 ### Done khi
 
-- `docker-compose.yml` không hardcode nhiều giá trị
-- có file mẫu env
-- local chỉ cần copy env mẫu rồi chạy
+- `docker-compose.yml` khÃ´ng hardcode nhiá»u giÃ¡ trá»‹
+- cÃ³ file máº«u env
+- local chá»‰ cáº§n copy env máº«u rá»“i cháº¡y
 
 ### Checklist
 
-- [x] Tách biến MySQL/Redis/port khỏi compose
-- [x] Thêm `.env.example`
-- [x] Thêm `.env.dev.example`
-- [x] Thêm `.env.prod.example`
-- [x] Cập nhật `.gitignore`
-- [x] Viết runbook Docker
+- [x] TÃ¡ch biáº¿n MySQL/Redis/port khá»i compose
+- [x] ThÃªm `.env.example`
+- [x] ThÃªm `.env.dev.example`
+- [x] ThÃªm `.env.prod.example`
+- [x] Cáº­p nháº­t `.gitignore`
+- [x] Viáº¿t runbook Docker
 
-### Trạng thái hiện tại
+### Tráº¡ng thÃ¡i hiá»‡n táº¡i
 
 - `DONE`
 
@@ -285,9 +285,9 @@ Làm sạch cách quản lý biến môi trường để local và Docker local 
 
 ## Phase 6 - Event service
 
-### Mục tiêu
+### Má»¥c tiÃªu
 
-Dựng domain service thứ hai để quản lý sự kiện.
+Dá»±ng domain service thá»© hai Ä‘á»ƒ quáº£n lÃ½ sá»± kiá»‡n.
 
 ### Domain
 
@@ -305,37 +305,38 @@ Dựng domain service thứ hai để quản lý sự kiện.
 
 #### 6.1 - Code service
 - [x] Clone `service-template` -> `event-service`
-- [x] Đổi package/class/domain
-- [x] Sửa lỗi copy sót `template`
-- [x] Thêm test controller
+- [x] Äá»•i package/class/domain
+- [x] Sá»­a lá»—i copy sÃ³t `template`
+- [x] ThÃªm test controller
 - [x] `mvn -pl event-service clean test` pass
 
-#### 6.2 - Config và migration
+#### 6.2 - Config vÃ  migration
 - [x] `event-service-dev.yml`
 - [x] `event-service-docker.yml`
-- [x] migration bảng `events`
+- [x] migration báº£ng `events`
 
 #### 6.3 - Gateway + Docker
 - [x] route `/api/events/**`
 - [x] Dockerfile `event-service`
-- [x] thêm `event-service` vào compose
-- [x] thêm `spring-cloud-starter-config`
+- [x] thÃªm `event-service` vÃ o compose
+- [x] thÃªm `spring-cloud-starter-config`
 
-#### 6.4 - Chạy thực tế
-- [x] Docker local up thành công
-- [ ] Test API qua gateway
-- [ ] Test local non-docker
+#### 6.4 - Cháº¡y thá»±c táº¿
+- [x] Docker local up thÃ nh cÃ´ng
+- [x] Test API qua gateway
+- [x] Test local non-docker
+- [x] Review ngÃ y 2026-07-07: `event-service` test pass, Docker daemon chÆ°a báº­t nÃªn chÆ°a verify API runtime láº¡i Ä‘Æ°á»£c
 
 ### Done khi
 
 - `ticket-event-service` healthy
-- Eureka có `EVENT-SERVICE`
-- API event chạy qua gateway
-- local run không Docker cũng chạy được
+- Eureka cÃ³ `EVENT-SERVICE`
+- API event cháº¡y qua gateway
+- local run khÃ´ng Docker cÅ©ng cháº¡y Ä‘Æ°á»£c
 
-### Trạng thái hiện tại
+### Tráº¡ng thÃ¡i hiá»‡n táº¡i
 
-- `IN PROGRESS`
+- `DONE`
 
 ---
 
@@ -345,13 +346,13 @@ Dựng domain service thứ hai để quản lý sự kiện.
 
 Quản lý số lượng vé của từng event.
 
-### Domain gợi ý
+### Domain
 
 - `eventId`
 - `totalQuantity`
 - `availableQuantity`
 
-### API gợi ý
+### API
 
 - `POST /api/inventories`
 - `GET /api/inventories/{eventId}`
@@ -360,34 +361,52 @@ Quản lý số lượng vé của từng event.
 
 ### Checklist
 
-- [ ] Clone `service-template` -> `inventory-service`
-- [ ] Tạo migration `inventories`
-- [ ] Thêm API create/get
+- [x] Clone `service-template` -> `inventory-service`
+- [x] Đổi package/class/domain sang `inventory`
+- [x] Tạo migration `inventories`
+- [x] Thêm API create/get
+- [x] Thêm config repo
+- [x] Thêm route gateway
+- [x] Thêm Dockerfile
+- [x] Thêm Docker Compose
+- [x] Thêm `spring-cloud-starter-config`
+- [x] Sửa `.dockerignore` để jar `inventory-service` vào build context
+- [x] Build/test module pass
+- [x] Docker local up healthy
+- [x] Test API qua gateway
+- [x] Test API gọi trực tiếp service
+- [ ] Test local non-docker
 - [ ] Thêm reserve/release cơ bản
-- [ ] Thêm config repo
-- [ ] Thêm route gateway
-- [ ] Thêm Docker Compose
-- [ ] Test local/docker
+
+### Bằng chứng đã verify
+
+- `mvn -pl inventory-service clean test` pass
+- `ticket-inventory-service` healthy
+- `ticket-gateway` healthy
+- Eureka register `INVENTORY-SERVICE` OK
+- `POST http://localhost:8080/api/inventories` OK
+- `GET http://localhost:8080/api/inventories/1` OK
+- `GET http://localhost:8093/api/inventories/1` OK
 
 ### Done khi
 
 - tạo tồn kho được
 - đọc tồn kho được
+- local non-docker chạy được
 - reserve/release cơ bản chạy được
 
 ### Trạng thái hiện tại
 
-- `TODO`
+- `IN PROGRESS`
 
 ---
-
 ## Phase 8 - Order service
 
-### Mục tiêu
+### Má»¥c tiÃªu
 
-Tạo order giữ vé và quản lý trạng thái order.
+Táº¡o order giá»¯ vÃ© vÃ  quáº£n lÃ½ tráº¡ng thÃ¡i order.
 
-### Domain gợi ý
+### Domain gá»£i Ã½
 
 - `orderNo`
 - `eventId`
@@ -396,7 +415,7 @@ Tạo order giữ vé và quản lý trạng thái order.
 - `status`
 - `expiresAt`
 
-### API gợi ý
+### API gá»£i Ã½
 
 - `POST /api/orders`
 - `GET /api/orders/{orderNo}`
@@ -404,20 +423,20 @@ Tạo order giữ vé và quản lý trạng thái order.
 
 ### Checklist
 
-- [ ] Tạo `order-service`
+- [ ] Táº¡o `order-service`
 - [ ] Migration `orders`
 - [ ] API create/get order
 - [ ] endpoint checkout status
-- [ ] thêm config/gateway/docker
+- [ ] thÃªm config/gateway/docker
 - [ ] test local/docker
 
 ### Done khi
 
-- tạo order được
-- xem trạng thái order được
-- có `expiresAt`
+- táº¡o order Ä‘Æ°á»£c
+- xem tráº¡ng thÃ¡i order Ä‘Æ°á»£c
+- cÃ³ `expiresAt`
 
-### Trạng thái hiện tại
+### Tráº¡ng thÃ¡i hiá»‡n táº¡i
 
 - `TODO`
 
@@ -425,23 +444,23 @@ Tạo order giữ vé và quản lý trạng thái order.
 
 ## Phase 9 - Idempotency API
 
-### Mục tiêu
+### Má»¥c tiÃªu
 
-Tránh double click tạo nhiều order.
+TrÃ¡nh double click táº¡o nhiá»u order.
 
 ### Checklist
 
-- [ ] Thiết kế `Idempotency-Key`
-- [ ] Lưu idempotency record
-- [ ] Trả response cũ nếu request trùng
-- [ ] Áp dụng cho `POST /api/orders`
-- [ ] test request lặp
+- [ ] Thiáº¿t káº¿ `Idempotency-Key`
+- [ ] LÆ°u idempotency record
+- [ ] Tráº£ response cÅ© náº¿u request trÃ¹ng
+- [ ] Ãp dá»¥ng cho `POST /api/orders`
+- [ ] test request láº·p
 
 ### Done khi
 
-- gửi 2 request cùng key chỉ tạo 1 order
+- gá»­i 2 request cÃ¹ng key chá»‰ táº¡o 1 order
 
-### Trạng thái hiện tại
+### Tráº¡ng thÃ¡i hiá»‡n táº¡i
 
 - `TODO`
 
@@ -449,11 +468,11 @@ Tránh double click tạo nhiều order.
 
 ## Phase 10 - Payment service
 
-### Mục tiêu
+### Má»¥c tiÃªu
 
-Mô phỏng thanh toán thành công/thất bại.
+MÃ´ phá»ng thanh toÃ¡n thÃ nh cÃ´ng/tháº¥t báº¡i.
 
-### API gợi ý
+### API gá»£i Ã½
 
 - `POST /api/payments`
 - `POST /api/payments/{paymentId}/complete`
@@ -461,7 +480,7 @@ Mô phỏng thanh toán thành công/thất bại.
 
 ### Checklist
 
-- [ ] Tạo `payment-service`
+- [ ] Táº¡o `payment-service`
 - [ ] migration payments
 - [ ] API create payment
 - [ ] API complete/fail payment
@@ -470,9 +489,9 @@ Mô phỏng thanh toán thành công/thất bại.
 
 ### Done khi
 
-- order có thể đi sang bước thanh toán giả lập
+- order cÃ³ thá»ƒ Ä‘i sang bÆ°á»›c thanh toÃ¡n giáº£ láº­p
 
-### Trạng thái hiện tại
+### Tráº¡ng thÃ¡i hiá»‡n táº¡i
 
 - `TODO`
 
@@ -480,11 +499,11 @@ Mô phỏng thanh toán thành công/thất bại.
 
 ## Phase 11 - Kafka + Outbox
 
-### Mục tiêu
+### Má»¥c tiÃªu
 
-Tách giao tiếp liên service qua event, giảm coupling và xử lý an toàn hơn.
+TÃ¡ch giao tiáº¿p liÃªn service qua event, giáº£m coupling vÃ  xá»­ lÃ½ an toÃ n hÆ¡n.
 
-### Event gợi ý
+### Event gá»£i Ã½
 
 - `order.created`
 - `inventory.reserved`
@@ -495,18 +514,18 @@ Tách giao tiếp liên service qua event, giảm coupling và xử lý an toàn
 
 ### Checklist
 
-- [ ] Bật Kafka local
-- [ ] outbox table dùng lại được
+- [ ] Báº­t Kafka local
+- [ ] outbox table dÃ¹ng láº¡i Ä‘Æ°á»£c
 - [ ] publisher job / scheduler
-- [ ] order-service ghi DB + outbox cùng transaction
-- [ ] payment-service publish event kết quả
+- [ ] order-service ghi DB + outbox cÃ¹ng transaction
+- [ ] payment-service publish event káº¿t quáº£
 - [ ] test publish/consume local
 
 ### Done khi
 
-- DB update và publish event không còn gắn cứng trong cùng logic sync
+- DB update vÃ  publish event khÃ´ng cÃ²n gáº¯n cá»©ng trong cÃ¹ng logic sync
 
-### Trạng thái hiện tại
+### Tráº¡ng thÃ¡i hiá»‡n táº¡i
 
 - `TODO`
 
@@ -514,9 +533,9 @@ Tách giao tiếp liên service qua event, giảm coupling và xử lý an toàn
 
 ## Phase 12 - Consumer idempotent
 
-### Mục tiêu
+### Má»¥c tiÃªu
 
-Chịu được Kafka at-least-once delivery.
+Chá»‹u Ä‘Æ°á»£c Kafka at-least-once delivery.
 
 ### Checklist
 
@@ -524,13 +543,13 @@ Chịu được Kafka at-least-once delivery.
 - [ ] idempotent consumer cho `payment.completed`
 - [ ] idempotent consumer cho `payment.failed`
 - [ ] idempotent consumer cho `order.confirmed`
-- [ ] test consume trùng message
+- [ ] test consume trÃ¹ng message
 
 ### Done khi
 
-- consume trùng không làm hỏng trạng thái business
+- consume trÃ¹ng khÃ´ng lÃ m há»ng tráº¡ng thÃ¡i business
 
-### Trạng thái hiện tại
+### Tráº¡ng thÃ¡i hiá»‡n táº¡i
 
 - `TODO`
 
@@ -538,137 +557,137 @@ Chịu được Kafka at-least-once delivery.
 
 ## Phase 13 - Timeout payment + release inventory
 
-### Mục tiêu
+### Má»¥c tiÃªu
 
-Nếu user không thanh toán trong X phút thì order tự hủy và vé được trả lại.
+Náº¿u user khÃ´ng thanh toÃ¡n trong X phÃºt thÃ¬ order tá»± há»§y vÃ  vÃ© Ä‘Æ°á»£c tráº£ láº¡i.
 
 ### Checklist
 
-- [ ] đặt `expiresAt` khi tạo order
-- [ ] scheduler scan order hết hạn
-- [ ] đổi trạng thái `EXPIRED` / `CANCELLED`
+- [ ] Ä‘áº·t `expiresAt` khi táº¡o order
+- [ ] scheduler scan order háº¿t háº¡n
+- [ ] Ä‘á»•i tráº¡ng thÃ¡i `EXPIRED` / `CANCELLED`
 - [ ] publish `order.expired`
-- [ ] inventory-service release lại vé
+- [ ] inventory-service release láº¡i vÃ©
 - [ ] test end-to-end timeout
 
 ### Done khi
 
-- order không thanh toán sẽ tự hết hạn
-- inventory được trả lại đúng
+- order khÃ´ng thanh toÃ¡n sáº½ tá»± háº¿t háº¡n
+- inventory Ä‘Æ°á»£c tráº£ láº¡i Ä‘Ãºng
 
-### Trạng thái hiện tại
+### Tráº¡ng thÃ¡i hiá»‡n táº¡i
 
 - `TODO`
 
 ---
 
-## Phase 14 - Observability cơ bản
+## Phase 14 - Observability cÆ¡ báº£n
 
-### Mục tiêu
+### Má»¥c tiÃªu
 
-Biết hệ đang sống hay chết, chỗ nào chậm, chỗ nào lỗi.
+Biáº¿t há»‡ Ä‘ang sá»‘ng hay cháº¿t, chá»— nÃ o cháº­m, chá»— nÃ o lá»—i.
 
 ### Checklist
 
-- [ ] chuẩn hóa actuator health
+- [ ] chuáº©n hÃ³a actuator health
 - [ ] metrics cho request count / error count
 - [ ] prometheus scrape local
-- [ ] dashboard cơ bản
-- [ ] log correlation id cơ bản
+- [ ] dashboard cÆ¡ báº£n
+- [ ] log correlation id cÆ¡ báº£n
 
 ### Done khi
 
-- nhìn được health/metrics của từng service
+- nhÃ¬n Ä‘Æ°á»£c health/metrics cá»§a tá»«ng service
 
-### Trạng thái hiện tại
+### Tráº¡ng thÃ¡i hiá»‡n táº¡i
 
 - `TODO`
 
 ---
 
-## Phase 15 - Hardening và tài liệu
+## Phase 15 - Hardening vÃ  tÃ i liá»‡u
 
-### Mục tiêu
+### Má»¥c tiÃªu
 
-Dọn nợ kỹ thuật, chuẩn hóa cách mở rộng service tiếp.
+Dá»n ná»£ ká»¹ thuáº­t, chuáº©n hÃ³a cÃ¡ch má»Ÿ rá»™ng service tiáº¿p.
 
-### Hạng mục
+### Háº¡ng má»¥c
 
-- Flyway chuẩn cho mọi service
-- service-template đồng nhất hơn
-- base outbox abstraction dùng lại được
+- Flyway chuáº©n cho má»i service
+- service-template Ä‘á»“ng nháº¥t hÆ¡n
+- base outbox abstraction dÃ¹ng láº¡i Ä‘Æ°á»£c
 - base idempotency abstraction cho API/consumer
 - contract test cho event
 - replay failed outbox pattern
-- docs/adr đầy đủ hơn
+- docs/adr Ä‘áº§y Ä‘á»§ hÆ¡n
 
 ### Checklist
 
-- [ ] chuẩn hóa template cho service mới
-- [ ] thêm docs ADR cần thiết
+- [ ] chuáº©n hÃ³a template cho service má»›i
+- [ ] thÃªm docs ADR cáº§n thiáº¿t
 - [ ] ghi runbook local/dev
-- [ ] note việc cần làm tiếp sau phase chính
+- [ ] note viá»‡c cáº§n lÃ m tiáº¿p sau phase chÃ­nh
 - [ ] review encoding/comment/docs
 
 ### Done khi
 
-- project dễ mở rộng, dễ dạy lại, dễ tiếp tục sau này
+- project dá»… má»Ÿ rá»™ng, dá»… dáº¡y láº¡i, dá»… tiáº¿p tá»¥c sau nÃ y
 
-### Trạng thái hiện tại
+### Tráº¡ng thÃ¡i hiá»‡n táº¡i
 
 - `TODO`
 
 ---
 
-## 5. Thứ tự ưu tiên thực tế từ bây giờ
+## 5. Thá»© tá»± Æ°u tiÃªn thá»±c táº¿ tá»« bÃ¢y giá»
 
-### Ưu tiên ngay
+### Æ¯u tiÃªn ngay
 
-1. chốt `Phase 6 - Event service`
+1. chá»‘t `Phase 6 - Event service`
 2. sang `Phase 7 - Inventory service`
 3. sang `Phase 8 - Order service`
-4. làm `Phase 9 - Idempotency API`
-5. làm `Phase 10 - Payment service`
-6. làm `Phase 11 - Kafka + Outbox`
-7. làm `Phase 12 - Consumer idempotent`
-8. làm `Phase 13 - Timeout + release inventory`
+4. lÃ m `Phase 9 - Idempotency API`
+5. lÃ m `Phase 10 - Payment service`
+6. lÃ m `Phase 11 - Kafka + Outbox`
+7. lÃ m `Phase 12 - Consumer idempotent`
+8. lÃ m `Phase 13 - Timeout + release inventory`
 
-### Chưa ưu tiên lúc này
+### ChÆ°a Æ°u tiÃªn lÃºc nÃ y
 
-- production deploy chuẩn
+- production deploy chuáº©n
 - CI/CD
 - cloud infra
 - Docker secrets
 - Kubernetes
-- auto refresh config nâng cao
+- auto refresh config nÃ¢ng cao
 
 ---
 
-## 6. Cách tự theo dõi tiến độ
+## 6. CÃ¡ch tá»± theo dÃµi tiáº¿n Ä‘á»™
 
-Mỗi khi xong một phase hoặc sub-phase, cập nhật 3 thứ:
+Má»—i khi xong má»™t phase hoáº·c sub-phase, cáº­p nháº­t 3 thá»©:
 
-1. trạng thái
+1. tráº¡ng thÃ¡i
 - `TODO`
 - `IN PROGRESS`
 - `DONE`
 
-2. bằng chứng
-- lệnh nào pass
-- API nào test pass
-- service nào healthy
+2. báº±ng chá»©ng
+- lá»‡nh nÃ o pass
+- API nÃ o test pass
+- service nÃ o healthy
 
-3. nợ kỹ thuật còn lại
-- chưa test local non-docker
-- chưa thêm healthcheck
-- chưa thêm retry/outbox
-- chưa xử lý idempotency
+3. ná»£ ká»¹ thuáº­t cÃ²n láº¡i
+- chÆ°a test local non-docker
+- chÆ°a thÃªm healthcheck
+- chÆ°a thÃªm retry/outbox
+- chÆ°a xá»­ lÃ½ idempotency
 
 ---
 
-## 7. Trạng thái hiện tại toàn dự án
+## 7. Tráº¡ng thÃ¡i hiá»‡n táº¡i toÃ n dá»± Ã¡n
 
-### Đã xong
+### ÄÃ£ xong
 
 - [x] Phase 1
 - [x] Phase 1.5
@@ -676,12 +695,12 @@ Mỗi khi xong một phase hoặc sub-phase, cập nhật 3 thứ:
 - [x] Phase 3
 - [x] Phase 4
 - [x] Phase 5
+- [x] Phase 6
 
-### Đang làm
+### Äang lÃ m
 
-- [ ] Phase 6
 
-### Chưa làm
+### ChÆ°a lÃ m
 
 - [ ] Phase 7
 - [ ] Phase 8
@@ -695,9 +714,9 @@ Mỗi khi xong một phase hoặc sub-phase, cập nhật 3 thứ:
 
 ---
 
-## 8. Bước tiếp theo ngay bây giờ
+## 8. BÆ°á»›c tiáº¿p theo ngay bÃ¢y giá»
 
-1. test API `event-service` qua gateway
-2. test `event-service` chạy local không Docker
-3. đánh dấu hoàn tất Phase 6
-4. bắt đầu dựng `inventory-service`
+1. báº¯t Ä‘áº§u dá»±ng `inventory-service`
+2. táº¡o báº£ng tá»“n kho vÃ© theo `eventId`
+3. táº¡o API create/get inventory
+4. ná»‘i gateway + Docker local
