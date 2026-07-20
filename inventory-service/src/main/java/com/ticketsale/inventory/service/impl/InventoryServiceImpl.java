@@ -40,6 +40,38 @@ public class InventoryServiceImpl implements InventoryService {
         return toResponse(entity);
     }
 
+    @Override
+    @Transactional // Transaction giữ khóa pessimistic đến khi reserve xong.
+    public InventoryResponse reserve(Long eventId, Integer quantity) {
+        InventoryEntity entity = inventoryRepository
+                .findByEventIdForUpdate(eventId)
+                .orElseThrow(() ->
+                        new IllegalArgumentException(
+                                "Không tìm thấy inventory của event"
+                        )
+                );
+
+        entity.reserve(quantity);
+
+        return toResponse(entity);
+    }
+
+    @Override
+    @Transactional
+    public InventoryResponse release(Long eventId, Integer quantity) {
+        InventoryEntity entity = inventoryRepository
+                .findByEventIdForUpdate(eventId)
+                .orElseThrow(() ->
+                        new IllegalArgumentException(
+                                "Không tìm thấy inventory của event"
+                        )
+                );
+
+        entity.release(quantity);
+
+        return toResponse(entity);
+    }
+
     private InventoryResponse toResponse(InventoryEntity entity) {
         return new InventoryResponse(
                 entity.getId(),

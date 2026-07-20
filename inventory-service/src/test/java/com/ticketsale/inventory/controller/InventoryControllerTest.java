@@ -13,6 +13,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.time.LocalDateTime;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -43,13 +44,56 @@ class InventoryControllerTest {
 
         mockMvc.perform(post("/api/inventories")
                         .contentType("application/json")
-                        .content(objectMapper.writeValueAsString(new TestRequest(1L, 100))))
+                        .content(objectMapper.writeValueAsString(new CreateTestRequest(1L, 100))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.eventId").value(1))
                 .andExpect(jsonPath("$.data.totalQuantity").value(100));
     }
 
-    private record TestRequest(Long eventId, Integer totalQuantity) {
+    @Test
+    void reserveShouldReturnUpdatedInventory() throws Exception {
+        Mockito.when(inventoryService.reserve(eq(1L), eq(2)))
+                .thenReturn(new InventoryResponse(
+                        1L,
+                        1L,
+                        100,
+                        98,
+                        LocalDateTime.now(),
+                        LocalDateTime.now()
+                ));
+
+        mockMvc.perform(post("/api/inventories/1/reserve")
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(new ChangeTestRequest(2))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.availableQuantity").value(98));
+    }
+
+    @Test
+    void releaseShouldReturnUpdatedInventory() throws Exception {
+        Mockito.when(inventoryService.release(eq(1L), eq(2)))
+                .thenReturn(new InventoryResponse(
+                        1L,
+                        1L,
+                        100,
+                        100,
+                        LocalDateTime.now(),
+                        LocalDateTime.now()
+                ));
+
+        mockMvc.perform(post("/api/inventories/1/release")
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(new ChangeTestRequest(2))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.availableQuantity").value(100));
+    }
+
+    private record CreateTestRequest(Long eventId, Integer totalQuantity) {
+    }
+
+    private record ChangeTestRequest(Integer quantity) {
     }
 }

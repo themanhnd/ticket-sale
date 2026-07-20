@@ -46,6 +46,38 @@ public class InventoryEntity {
         return eventId;
     }
 
+    public void reserve(Integer quantity) {
+        validateQuantity(quantity);
+
+        if (availableQuantity < quantity) {
+            throw new IllegalArgumentException("Không đủ vé để giữ chỗ");
+        }
+
+        availableQuantity -= quantity;
+        updatedAt = LocalDateTime.now();
+    }
+
+    public void release(Integer quantity) {
+        validateQuantity(quantity);
+
+        if (availableQuantity + quantity > totalQuantity) {
+            throw new IllegalArgumentException(
+                    "Số vé trả lại vượt quá tổng số vé"
+            );
+        }
+
+        availableQuantity += quantity;
+        updatedAt = LocalDateTime.now();
+    }
+
+    private void validateQuantity(Integer quantity) {
+        if (quantity == null || quantity <= 0) {
+            throw new IllegalArgumentException(
+                    "Số lượng phải lớn hơn 0"
+            );
+        }
+    }
+
     public Integer getTotalQuantity() {
         return totalQuantity;
     }
