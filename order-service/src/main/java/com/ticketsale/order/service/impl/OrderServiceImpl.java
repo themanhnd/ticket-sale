@@ -8,32 +8,50 @@ import com.ticketsale.order.service.OrderService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-// Xử lý nghiệp vụ chính của template.
+import java.time.LocalDateTime;
+import java.util.UUID;
+
 @Service
 public class OrderServiceImpl implements OrderService {
 
-    private final OrderRepository OrderRepository;
+    private static final long PAYMENT_TIMEOUT_MINUTES = 15;
 
-    public OrderServiceImpl(OrderRepository OrderRepository) {
-        this.OrderRepository = OrderRepository;
+    private final OrderRepository orderRepository;
+
+    public OrderServiceImpl(OrderRepository orderRepository) {
+        this.orderRepository = orderRepository;
     }
 
+    // Tạo order chờ thanh toán. Bước reserve inventory sẽ được thêm sau.
     @Override
     @Transactional
     public OrderResponse create(CreateOrderRequest request) {
-        OrderRepository.findByCode(request.code()).ifPresent(existing -> {
-            throw new IllegalArgumentException("Mã đã tồn tại");
-        });
+        String orderNo = "ORD-" + UUID.randomUUID();
+        LocalDateTime expiresAt = LocalDateTime.now()
+                .plusMinutes(PAYMENT_TIMEOUT_MINUTES);
 
-        OrderEntity saved = OrderRepository.save(new OrderEntity(request.code(), request.name()));
+        OrderEntity entity = new OrderEntity(
+                orderNo,
+                request.userId(),
+                request.eventId(),
+                request.quantity(),
+                expiresAt
+        );
+
+        OrderEntity saved = orderRepository.save(entity);
+
         return toResponse(saved);
     }
 
+    // Tìm order bằng mã public, không bắt frontend sử dụng ID database.
     @Override
     @Transactional(readOnly = true)
-    public OrderResponse getById(Long id) {
-        OrderEntity entity = OrderRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy template"));
+    public OrderResponse getByOrderNo(String orderNo) {
+        OrderEntity entity = orderRepository.findByOrderNo(orderNo)
+                .orElseThrow(() ->
+                        new IllegalArgumentException("Không tìm thấy order")
+                );
+
         return toResponse(entity);
     }
 
@@ -41,8 +59,12 @@ public class OrderServiceImpl implements OrderService {
     private OrderResponse toResponse(OrderEntity entity) {
         return new OrderResponse(
                 entity.getId(),
-                entity.getCode(),
-                entity.getName(),
+                entity.getOrderNo(),
+                entity.getUserId(),
+                entity.getEventId(),
+                entity.getQuantity(),
+                entity.getStatus(),
+                entity.getExpiresAt(),
                 entity.getCreatedAt(),
                 entity.getUpdatedAt()
         );

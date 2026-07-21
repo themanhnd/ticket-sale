@@ -1,5 +1,7 @@
 package com.ticketsale.order.controller.dto.response;
 
+import com.ticketsale.order.repository.entity.OrderStatus;
+
 import java.time.LocalDateTime;
 
 public record OrderResponse(
@@ -8,7 +10,7 @@ public record OrderResponse(
         Long userId,
         Long eventId,
         Integer quantity,
-        String status,
+        OrderStatus status,
         LocalDateTime expiresAt,
         LocalDateTime createdAt,
         LocalDateTime updatedAt

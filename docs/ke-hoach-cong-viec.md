@@ -438,8 +438,9 @@ Tạo order giữ vé và quản lý trạng thái order chờ thanh toán.
 - [x] Tạo module `order-service`
 - [x] Đổi package và application name sang `order`
 - [x] Đổi tên class/file Template sang Order
-- [ ] Migration `orders`
-- [ ] API create/get order
+- [x] Đổi logic domain từ template sang order
+- [x] Migration `orders`
+- [x] API create/get order
 - [ ] Nối order với inventory reserve
 - [ ] Endpoint checkout status
 - [ ] Thêm config/gateway/docker

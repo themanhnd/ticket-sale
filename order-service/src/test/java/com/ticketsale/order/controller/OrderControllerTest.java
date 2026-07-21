@@ -2,6 +2,7 @@ package com.ticketsale.order.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ticketsale.order.controller.dto.response.OrderResponse;
+import com.ticketsale.order.repository.entity.OrderStatus;
 import com.ticketsale.order.service.OrderService;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -13,8 +14,10 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.time.LocalDateTime;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(OrderController.class)
 class OrderControllerTest {
@@ -26,26 +29,62 @@ class OrderControllerTest {
     private ObjectMapper objectMapper;
 
     @MockBean
-    private OrderService OrderService;
+    private OrderService orderService;
 
     @Test
-    void createShouldReturnTemplate() throws Exception {
-        Mockito.when(OrderService.create(any()))
+    void createShouldReturnOrder() throws Exception {
+        LocalDateTime now = LocalDateTime.now();
+
+        Mockito.when(orderService.create(any()))
                 .thenReturn(new OrderResponse(
                         1L,
-                        "DEMO",
-                        "Demo template",
-                        LocalDateTime.now(),
-                        LocalDateTime.now()
+                        "ORD-123",
+                        1L,
+                        1001L,
+                        2,
+                        OrderStatus.PENDING_PAYMENT,
+                        now.plusMinutes(15),
+                        now,
+                        now
                 ));
 
-        mockMvc.perform(post("/api/templates")
+        mockMvc.perform(post("/api/orders")
                         .contentType("application/json")
-                        .content(objectMapper.writeValueAsString(new TestRequest("DEMO", "Demo template"))))
+                        .content(objectMapper.writeValueAsString(
+                                new CreateTestRequest(1L, 1001L, 2)
+                        )))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true));
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.orderNo").value("ORD-123"))
+                .andExpect(jsonPath("$.data.status").value("PENDING_PAYMENT"));
     }
 
-    private record TestRequest(String code, String name) {
+    @Test
+    void getShouldReturnOrder() throws Exception {
+        LocalDateTime now = LocalDateTime.now();
+
+        Mockito.when(orderService.getByOrderNo("ORD-123"))
+                .thenReturn(new OrderResponse(
+                        1L,
+                        "ORD-123",
+                        1L,
+                        1001L,
+                        2,
+                        OrderStatus.PENDING_PAYMENT,
+                        now.plusMinutes(15),
+                        now,
+                        now
+                ));
+
+        mockMvc.perform(get("/api/orders/ORD-123"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.orderNo").value("ORD-123"));
+    }
+
+    private record CreateTestRequest(
+            Long userId,
+            Long eventId,
+            Integer quantity
+    ) {
     }
 }

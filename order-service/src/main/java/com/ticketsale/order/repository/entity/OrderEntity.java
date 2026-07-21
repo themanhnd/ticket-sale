@@ -24,8 +24,9 @@ public class OrderEntity {
     @Column(nullable = false)
     private Integer quantity;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 50)
-    private String status;
+    private OrderStatus status;
 
     @Column(nullable = false)
     private LocalDateTime expiresAt;
@@ -44,7 +45,7 @@ public class OrderEntity {
         this.userId = userId;
         this.eventId = eventId;
         this.quantity = quantity;
-        this.status = "PENDING_PAYMENT";
+        this.status = OrderStatus.PENDING_PAYMENT;
         this.expiresAt = expiresAt;
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
@@ -70,7 +71,7 @@ public class OrderEntity {
         return quantity;
     }
 
-    public String getStatus() {
+    public OrderStatus getStatus() {
         return status;
     }
 

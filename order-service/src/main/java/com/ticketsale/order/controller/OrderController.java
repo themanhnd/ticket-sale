@@ -7,26 +7,29 @@ import com.ticketsale.order.service.OrderService;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
-// API mẫu cho service clone từ service-template.
 @RestController
-@RequestMapping("/api/templates")
+@RequestMapping("/api/orders")
 public class OrderController {
 
-    private final OrderService OrderService;
+    private final OrderService orderService;
 
-    public OrderController(OrderService OrderService) {
-        this.OrderService = OrderService;
+    public OrderController(OrderService orderService) {
+        this.orderService = orderService;
     }
 
-    // Tạo template mới.
+    // Nhận request tạo order từ frontend.
     @PostMapping
-    public ApiResponse<OrderResponse> create(@Valid @RequestBody CreateOrderRequest request) {
-        return ApiResponse.ok(OrderService.create(request));
+    public ApiResponse<OrderResponse> create(
+            @Valid @RequestBody CreateOrderRequest request
+    ) {
+        return ApiResponse.ok(orderService.create(request));
     }
 
-    // Lấy template theo id.
-    @GetMapping("/{id}")
-    public ApiResponse<OrderResponse> getById(@PathVariable Long id) {
-        return ApiResponse.ok(OrderService.getById(id));
+    // Lấy order theo mã order public.
+    @GetMapping("/{orderNo}")
+    public ApiResponse<OrderResponse> getByOrderNo(
+            @PathVariable String orderNo
+    ) {
+        return ApiResponse.ok(orderService.getByOrderNo(orderNo));
     }
 }
