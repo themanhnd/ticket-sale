@@ -28,6 +28,7 @@
         <module>user-service</module>
         <module>event-service</module>
         <module>inventory-service</module>
+        <module>order-service</module>
         <module>service-template</module>
     </modules>
 

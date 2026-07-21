@@ -1,0 +1,36 @@
+spring:
+  application:
+    # Tên service.
+    name: order-service
+
+  datasource:
+    # Nói với Spring:
+    # dùng MySQL local
+    # DB: service_template_db
+    # nếu DB chưa có thì tạo
+    url: jdbc:mysql://localhost:3306/service_template_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+    username: root
+    password: root
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+
+  flyway:
+    # Bật Flyway và quét file migration trong classpath
+    enabled: true
+    locations: classpath:db/migration
+
+server:
+  port: 8090
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+
+eureka:
+  client:
+    enabled: false

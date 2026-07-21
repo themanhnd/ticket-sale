@@ -375,47 +375,58 @@ Quản lý số lượng vé của từng event.
 - [x] Docker local up healthy
 - [x] Test API qua gateway
 - [x] Test API gọi trực tiếp service
-- [ ] Test local non-docker
-- [ ] Thêm reserve/release cơ bản
+- [x] Thêm reserve/release cơ bản
+- [ ] Test local non-docker (để sau)
 
 ### Bằng chứng đã verify
 
-- `mvn -pl inventory-service clean test` pass
+- `mvn -pl inventory-service clean test` pass: 8 tests, 0 failures, 0 errors
 - `ticket-inventory-service` healthy
 - `ticket-gateway` healthy
 - Eureka register `INVENTORY-SERVICE` OK
 - `POST http://localhost:8080/api/inventories` OK
-- `GET http://localhost:8080/api/inventories/1` OK
-- `GET http://localhost:8093/api/inventories/1` OK
+- `GET http://localhost:8080/api/inventories/{eventId}` OK
+- `GET http://localhost:8093/api/inventories/{eventId}` OK
+- `POST http://localhost:8080/api/inventories/{eventId}/reserve` OK: 10 vé -> giữ 2 -> còn 8
+- `POST http://localhost:8080/api/inventories/{eventId}/release` OK: còn 8 -> trả 1 -> còn 9
+- Reserve quá số vé trả HTTP 400: `Không đủ vé để giữ chỗ`
+
+### Nợ kỹ thuật để sau
+
+- Test local non-docker cho `inventory-service`
+- Idempotency cho reserve/release khi Order service gọi lặp
+- Reservation record để biết vé đang giữ thuộc order nào
+- Timeout release khi order hết hạn thanh toán
 
 ### Done khi
 
 - tạo tồn kho được
 - đọc tồn kho được
-- local non-docker chạy được
 - reserve/release cơ bản chạy được
+- chặn oversell cơ bản bằng DB lock được
+- Docker local chạy end-to-end qua gateway được
 
 ### Trạng thái hiện tại
 
-- `IN PROGRESS`
+- `DONE`
 
 ---
 ## Phase 8 - Order service
 
-### Má»¥c tiÃªu
+### Mục tiêu
 
-Táº¡o order giá»¯ vÃ© vÃ  quáº£n lÃ½ tráº¡ng thÃ¡i order.
+Tạo order giữ vé và quản lý trạng thái order chờ thanh toán.
 
-### Domain gá»£i Ã½
+### Domain V1
 
 - `orderNo`
-- `eventId`
 - `userId`
+- `eventId`
 - `quantity`
 - `status`
 - `expiresAt`
 
-### API gá»£i Ã½
+### API V1
 
 - `POST /api/orders`
 - `GET /api/orders/{orderNo}`
@@ -423,26 +434,30 @@ Táº¡o order giá»¯ vÃ© vÃ  quáº£n lÃ½ tráº¡ng thÃ¡i order.
 
 ### Checklist
 
-- [ ] Táº¡o `order-service`
+- [x] Chốt thiết kế Order V1
+- [x] Tạo module `order-service`
+- [x] Đổi package và application name sang `order`
+- [x] Đổi tên class/file Template sang Order
 - [ ] Migration `orders`
 - [ ] API create/get order
-- [ ] endpoint checkout status
-- [ ] thÃªm config/gateway/docker
-- [ ] test local/docker
+- [ ] Nối order với inventory reserve
+- [ ] Endpoint checkout status
+- [ ] Thêm config/gateway/docker
+- [ ] Test local/Docker
 
-### Done khi
+### Nợ kỹ thuật dự kiến
 
-- táº¡o order Ä‘Æ°á»£c
-- xem tráº¡ng thÃ¡i order Ä‘Æ°á»£c
-- cÃ³ `expiresAt`
+- Idempotency cho `POST /api/orders`.
+- Outbox và event-driven flow.
+- Payment service.
+- Timeout cancel và release inventory.
+- Consumer idempotent.
 
-### Tráº¡ng thÃ¡i hiá»‡n táº¡i
+### Trạng thái hiện tại
 
-- `TODO`
+- `IN PROGRESS`
 
----
-
-## Phase 9 - Idempotency API
+---## Phase 9 - Idempotency API
 
 ### Má»¥c tiÃªu
 
@@ -696,13 +711,13 @@ Má»—i khi xong má»™t phase hoáº·c sub-phase, cáº­p nháº­t 3 th�
 - [x] Phase 4
 - [x] Phase 5
 - [x] Phase 6
+- [x] Phase 7
 
 ### Äang lÃ m
 
 
 ### ChÆ°a lÃ m
 
-- [ ] Phase 7
 - [ ] Phase 8
 - [ ] Phase 9
 - [ ] Phase 10
@@ -714,9 +729,10 @@ Má»—i khi xong má»™t phase hoáº·c sub-phase, cáº­p nháº­t 3 th�
 
 ---
 
-## 8. BÆ°á»›c tiáº¿p theo ngay bÃ¢y giá»
+## 8. Bước tiếp theo ngay bây giờ
 
-1. báº¯t Ä‘áº§u dá»±ng `inventory-service`
-2. táº¡o báº£ng tá»“n kho vÃ© theo `eventId`
-3. táº¡o API create/get inventory
-4. ná»‘i gateway + Docker local
+1. Dựng module `order-service` từ `service-template`.
+2. Tạo migration bảng `orders`.
+3. Tạo API create/get order.
+4. Nối order với inventory reserve.
+5. Test local và Docker.
