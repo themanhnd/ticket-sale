@@ -441,7 +441,7 @@ Tạo order giữ vé và quản lý trạng thái order chờ thanh toán.
 - [x] Đổi logic domain từ template sang order
 - [x] Migration `orders`
 - [x] API create/get order
-- [ ] Nối order với inventory reserve
+- [x] Nối order với inventory reserve
 - [ ] Endpoint checkout status
 - [ ] Thêm config/gateway/docker
 - [ ] Test local/Docker

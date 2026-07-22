@@ -1,5 +1,6 @@
 package com.ticketsale.order.service.impl;
 
+import com.ticketsale.order.client.InventoryClient;
 import com.ticketsale.order.controller.dto.request.CreateOrderRequest;
 import com.ticketsale.order.controller.dto.response.OrderResponse;
 import com.ticketsale.order.repository.OrderRepository;
@@ -17,15 +18,22 @@ public class OrderServiceImpl implements OrderService {
     private static final long PAYMENT_TIMEOUT_MINUTES = 15;
 
     private final OrderRepository orderRepository;
+    private final InventoryClient inventoryClient;
 
-    public OrderServiceImpl(OrderRepository orderRepository) {
+    public OrderServiceImpl(
+            OrderRepository orderRepository,
+            InventoryClient inventoryClient
+    ) {
         this.orderRepository = orderRepository;
+        this.inventoryClient = inventoryClient;
     }
 
-    // Tạo order chờ thanh toán. Bước reserve inventory sẽ được thêm sau.
+    // Tạo order chờ thanh toán. Phải giữ vé trước, rồi mới lưu order.
     @Override
     @Transactional
     public OrderResponse create(CreateOrderRequest request) {
+        inventoryClient.reserve(request.eventId(), request.quantity());
+
         String orderNo = "ORD-" + UUID.randomUUID();
         LocalDateTime expiresAt = LocalDateTime.now()
                 .plusMinutes(PAYMENT_TIMEOUT_MINUTES);

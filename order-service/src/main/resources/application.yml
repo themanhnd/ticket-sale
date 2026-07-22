@@ -34,3 +34,7 @@ management:
 eureka:
   client:
     enabled: false
+
+inventory:
+  service:
+    base-url: http://localhost:8093
