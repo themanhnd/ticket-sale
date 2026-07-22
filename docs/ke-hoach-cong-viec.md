@@ -442,7 +442,7 @@ Tạo order giữ vé và quản lý trạng thái order chờ thanh toán.
 - [x] Migration `orders`
 - [x] API create/get order
 - [x] Nối order với inventory reserve
-- [ ] Endpoint checkout status
+- [x] Endpoint checkout status
 - [ ] Thêm config/gateway/docker
 - [ ] Test local/Docker
 
@@ -732,8 +732,7 @@ Mỗi khi xong một phase hoặc sub-phase, cập nhật 3 thứ:
 
 ## 8. Bước tiếp theo ngay bây giờ
 
-1. Dựng module `order-service` từ `service-template`.
-2. Tạo migration bảng `orders`.
-3. Tạo API create/get order.
-4. Nối order với inventory reserve.
-5. Test local và Docker.
+1. Thêm config local/Docker cho `order-service`.
+2. Thêm route Gateway `/api/orders/**`.
+3. Thêm `order-service` vào Docker Compose.
+4. Test luồng order end-to-end qua Gateway.

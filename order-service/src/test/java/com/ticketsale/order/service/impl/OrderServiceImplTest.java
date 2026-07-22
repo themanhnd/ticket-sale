@@ -2,12 +2,16 @@ package com.ticketsale.order.service.impl;
 
 import com.ticketsale.order.client.InventoryClient;
 import com.ticketsale.order.controller.dto.request.CreateOrderRequest;
+import com.ticketsale.order.controller.dto.response.CheckoutResponse;
 import com.ticketsale.order.controller.dto.response.OrderResponse;
 import com.ticketsale.order.repository.OrderRepository;
 import com.ticketsale.order.repository.entity.OrderEntity;
 import com.ticketsale.order.repository.entity.OrderStatus;
 import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
+
+import java.time.LocalDateTime;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -62,5 +66,25 @@ class OrderServiceImplTest {
 
         assertEquals("Không đủ vé để giữ chỗ", exception.getMessage());
         verify(orderRepository, never()).save(any(OrderEntity.class));
+    }
+
+    @Test
+    void getCheckoutShouldReturnStatusAndExpiration() {
+        LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(15);
+        OrderEntity entity = new OrderEntity(
+                "ORD-123",
+                1L,
+                1001L,
+                2,
+                expiresAt
+        );
+        when(orderRepository.findByOrderNo("ORD-123"))
+                .thenReturn(Optional.of(entity));
+
+        CheckoutResponse response = orderService.getCheckout("ORD-123");
+
+        assertEquals("ORD-123", response.orderNo());
+        assertEquals(OrderStatus.PENDING_PAYMENT, response.status());
+        assertEquals(expiresAt, response.expiresAt());
     }
 }

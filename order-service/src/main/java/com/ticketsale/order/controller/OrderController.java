@@ -2,6 +2,7 @@ package com.ticketsale.order.controller;
 
 import com.ticketsale.common.response.ApiResponse;
 import com.ticketsale.order.controller.dto.request.CreateOrderRequest;
+import com.ticketsale.order.controller.dto.response.CheckoutResponse;
 import com.ticketsale.order.controller.dto.response.OrderResponse;
 import com.ticketsale.order.service.OrderService;
 import jakarta.validation.Valid;
@@ -31,5 +32,13 @@ public class OrderController {
             @PathVariable String orderNo
     ) {
         return ApiResponse.ok(orderService.getByOrderNo(orderNo));
+    }
+
+    // Trả trạng thái checkout để frontend biết order còn thời gian thanh toán hay không.
+    @GetMapping("/{orderNo}/checkout")
+    public ApiResponse<CheckoutResponse> getCheckout(
+            @PathVariable String orderNo
+    ) {
+        return ApiResponse.ok(orderService.getCheckout(orderNo));
     }
 }

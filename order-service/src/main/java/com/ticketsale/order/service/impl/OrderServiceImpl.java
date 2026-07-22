@@ -2,6 +2,7 @@ package com.ticketsale.order.service.impl;
 
 import com.ticketsale.order.client.InventoryClient;
 import com.ticketsale.order.controller.dto.request.CreateOrderRequest;
+import com.ticketsale.order.controller.dto.response.CheckoutResponse;
 import com.ticketsale.order.controller.dto.response.OrderResponse;
 import com.ticketsale.order.repository.OrderRepository;
 import com.ticketsale.order.repository.entity.OrderEntity;
@@ -55,12 +56,28 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional(readOnly = true)
     public OrderResponse getByOrderNo(String orderNo) {
-        OrderEntity entity = orderRepository.findByOrderNo(orderNo)
+        return toResponse(findByOrderNo(orderNo));
+    }
+
+    // Trả dữ liệu checkout gọn nhẹ để frontend thăm dò trạng thái thanh toán.
+    @Override
+    @Transactional(readOnly = true)
+    public CheckoutResponse getCheckout(String orderNo) {
+        OrderEntity entity = findByOrderNo(orderNo);
+
+        return new CheckoutResponse(
+                entity.getOrderNo(),
+                entity.getStatus(),
+                entity.getExpiresAt()
+        );
+    }
+
+    // Gom logic tìm order để các API dùng cùng một lỗi khi order không tồn tại.
+    private OrderEntity findByOrderNo(String orderNo) {
+        return orderRepository.findByOrderNo(orderNo)
                 .orElseThrow(() ->
                         new IllegalArgumentException("Không tìm thấy order")
                 );
-
-        return toResponse(entity);
     }
 
     // Chuyển Entity nội bộ thành DTO trả ra ngoài.

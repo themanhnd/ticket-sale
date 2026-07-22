@@ -1,6 +1,7 @@
 package com.ticketsale.order.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ticketsale.order.controller.dto.response.CheckoutResponse;
 import com.ticketsale.order.controller.dto.response.OrderResponse;
 import com.ticketsale.order.repository.entity.OrderStatus;
 import com.ticketsale.order.service.OrderService;
@@ -60,6 +61,16 @@ class OrderControllerTest {
     }
 
     @Test
+    void createShouldRejectInvalidQuantity() throws Exception {
+        mockMvc.perform(post("/api/orders")
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(
+                                new CreateTestRequest(1L, 1001L, 0)
+                        )))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     void getShouldReturnOrder() throws Exception {
         LocalDateTime now = LocalDateTime.now();
 
@@ -79,6 +90,24 @@ class OrderControllerTest {
         mockMvc.perform(get("/api/orders/ORD-123"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.orderNo").value("ORD-123"));
+    }
+
+    @Test
+    void checkoutShouldReturnPaymentWaitingStatus() throws Exception {
+        LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(15);
+
+        Mockito.when(orderService.getCheckout("ORD-123"))
+                .thenReturn(new CheckoutResponse(
+                        "ORD-123",
+                        OrderStatus.PENDING_PAYMENT,
+                        expiresAt
+                ));
+
+        mockMvc.perform(get("/api/orders/ORD-123/checkout"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.orderNo").value("ORD-123"))
+                .andExpect(jsonPath("$.data.status").value("PENDING_PAYMENT"))
+                .andExpect(jsonPath("$.data.expiresAt").exists());
     }
 
     private record CreateTestRequest(
