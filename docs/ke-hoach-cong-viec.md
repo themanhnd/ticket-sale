@@ -448,6 +448,7 @@ Tạo order giữ vé và quản lý trạng thái order chờ thanh toán.
 
 ### Hiểu nhanh Phase 8
 
+- Bài giải thích chi tiết: [`docs/learning/phase-8-config-eureka-gateway.md`](learning/phase-8-config-eureka-gateway.md).
 - `application.yml` chỉ giữ phần cố định: tên service, port, `configserver`.
 - File `order-service-dev.yml` và `order-service-docker.yml` giữ khác biệt local/Docker như MySQL, Eureka, Inventory.
 - Gateway nhận `POST /api/orders` và `GET /api/orders/**`, rồi chuyển tới `lb://ORDER-SERVICE`.
