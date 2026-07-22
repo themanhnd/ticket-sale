@@ -446,6 +446,15 @@ Tạo order giữ vé và quản lý trạng thái order chờ thanh toán.
 - [x] Thêm config/gateway/docker
 - [x] Test local/Docker
 
+### Hiểu nhanh Phase 8
+
+- `application.yml` chỉ giữ phần cố định: tên service, port, `configserver`.
+- File `order-service-dev.yml` và `order-service-docker.yml` giữ khác biệt local/Docker như MySQL, Eureka, Inventory.
+- Gateway nhận `POST /api/orders` và `GET /api/orders/**`, rồi chuyển tới `lb://ORDER-SERVICE`.
+- `OrderServiceImpl.create()` giữ vé ở inventory trước, rồi mới lưu order.
+- `GET /api/orders/{orderNo}/checkout` chỉ trả dữ liệu frontend cần: `orderNo`, `status`, `expiresAt`.
+- Verify xong Phase 8: chạy local, chạy Docker, tạo order qua Gateway, checkout OK, thiếu vé trả `400`.
+
 ### Nợ kỹ thuật dự kiến
 
 - Idempotency cho `POST /api/orders`.
