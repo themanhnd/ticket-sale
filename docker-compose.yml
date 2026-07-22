@@ -127,6 +127,8 @@ services:
         condition: service_healthy
       inventory-service:
         condition: service_healthy
+      order-service:
+        condition: service_healthy
   event-service:
     build:
       context: ./event-service
@@ -176,6 +178,33 @@ services:
       discovery:
         condition: service_started
       config:
+        condition: service_healthy
+  order-service:
+    build:
+      context: ./order-service
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    container_name: ticket-order-service
+    profiles: [ "platform" ]
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_CONFIG_IMPORT: ${CONFIG_IMPORT:-configserver:http://config:8888}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_DEFAULT_ZONE:-http://discovery:8761/eureka/}
+    ports:
+      - "8094:8094"
+    healthcheck:
+      test: [ "CMD-SHELL", "wget -qO- http://localhost:8094/actuator/health || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    depends_on:
+      mysql:
+        condition: service_healthy
+      discovery:
+        condition: service_started
+      config:
+        condition: service_healthy
+      inventory-service:
         condition: service_healthy
 volumes:
  ticket-mysql-data:

@@ -443,8 +443,8 @@ Tạo order giữ vé và quản lý trạng thái order chờ thanh toán.
 - [x] API create/get order
 - [x] Nối order với inventory reserve
 - [x] Endpoint checkout status
-- [ ] Thêm config/gateway/docker
-- [ ] Test local/Docker
+- [x] Thêm config/gateway/docker
+- [x] Test local/Docker
 
 ### Nợ kỹ thuật dự kiến
 
@@ -456,9 +456,11 @@ Tạo order giữ vé và quản lý trạng thái order chờ thanh toán.
 
 ### Trạng thái hiện tại
 
-- `IN PROGRESS`
+- `DONE`
 
----## Phase 9 - Idempotency API
+---
+
+## Phase 9 - Idempotency API
 
 ### Mục tiêu
 
@@ -713,13 +715,13 @@ Mỗi khi xong một phase hoặc sub-phase, cập nhật 3 thứ:
 - [x] Phase 5
 - [x] Phase 6
 - [x] Phase 7
+- [x] Phase 8
 
 ### Đang làm
 
 
 ### Chưa làm
 
-- [ ] Phase 8
 - [ ] Phase 9
 - [ ] Phase 10
 - [ ] Phase 11
@@ -732,7 +734,7 @@ Mỗi khi xong một phase hoặc sub-phase, cập nhật 3 thứ:
 
 ## 8. Bước tiếp theo ngay bây giờ
 
-1. Thêm config local/Docker cho `order-service`.
-2. Thêm route Gateway `/api/orders/**`.
-3. Thêm `order-service` vào Docker Compose.
-4. Test luồng order end-to-end qua Gateway.
+1. Chốt thiết kế `Idempotency-Key` cho `POST /api/orders`.
+2. Tạo migration lưu idempotency record.
+3. Trả response cũ khi client gửi lại cùng key.
+4. Viết test request trùng không tạo thêm order.

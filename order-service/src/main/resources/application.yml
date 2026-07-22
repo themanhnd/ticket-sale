@@ -1,26 +1,10 @@
 spring:
   application:
-    # Tên service.
+    # Tên dùng để Config Server tìm order-service-{profile}.yml.
     name: order-service
-
-  datasource:
-    # Nói với Spring:
-    # dùng MySQL local
-    # DB: order_service_db
-    # nếu DB chưa có thì tạo
-    url: jdbc:mysql://localhost:3306/order_service_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
-    username: root
-    password: root
-
-  jpa:
-    hibernate:
-      ddl-auto: validate
-    open-in-view: false
-
-  flyway:
-    # Bật Flyway và quét file migration trong classpath
-    enabled: true
-    locations: classpath:db/migration
+  config:
+    # Local lấy cấu hình từ Config Server; Docker sẽ ghi đè URL bằng biến môi trường.
+    import: optional:configserver:http://localhost:8888
 
 server:
   port: 8094
@@ -30,11 +14,3 @@ management:
     web:
       exposure:
         include: health,info,metrics,prometheus
-
-eureka:
-  client:
-    enabled: false
-
-inventory:
-  service:
-    base-url: http://localhost:8093
