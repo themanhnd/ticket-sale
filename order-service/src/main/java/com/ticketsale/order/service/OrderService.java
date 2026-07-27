@@ -6,7 +6,7 @@ import com.ticketsale.order.controller.dto.response.OrderResponse;
 
 public interface OrderService {
 
-    OrderResponse create(CreateOrderRequest request);
+    OrderResponse create(CreateOrderRequest request, String idempotencyKey);
 
     OrderResponse getByOrderNo(String orderNo);
 

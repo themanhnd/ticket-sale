@@ -29,4 +29,11 @@ public class GlobalExceptionHandler {
     public ApiResponse<Void> handleBadRequest(IllegalArgumentException exception) {
         return ApiResponse.fail(exception.getMessage());
     }
+
+    // Trả lỗi khi client dùng lại Idempotency-Key sai cách hoặc request cũ đang xử lý.
+    @ExceptionHandler(IdempotencyConflictException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ApiResponse<Void> handleIdempotencyConflict(IdempotencyConflictException exception) {
+        return ApiResponse.fail(exception.getMessage());
+    }
 }

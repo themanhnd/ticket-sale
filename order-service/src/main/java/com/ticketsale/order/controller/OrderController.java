@@ -18,12 +18,17 @@ public class OrderController {
         this.orderService = orderService;
     }
 
-    // Nhận request tạo order từ frontend.
+    // Nhận request tạo order và bắt buộc client gửi key đại diện cho một thao tác đặt vé.
     @PostMapping
     public ApiResponse<OrderResponse> create(
+            @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
             @Valid @RequestBody CreateOrderRequest request
     ) {
-        return ApiResponse.ok(orderService.create(request));
+        if (idempotencyKey == null || idempotencyKey.isBlank()) {
+            throw new IllegalArgumentException("Idempotency-Key không được để trống");
+        }
+
+        return ApiResponse.ok(orderService.create(request, idempotencyKey));
     }
 
     // Lấy order theo mã order public.

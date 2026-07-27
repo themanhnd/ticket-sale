@@ -478,19 +478,41 @@ Tránh double click tạo nhiều order.
 
 ### Checklist
 
-- [ ] Thiết kế `Idempotency-Key`
-- [ ] Lưu idempotency record
-- [ ] Trả response cũ nếu request trùng
-- [ ] Áp dụng cho `POST /api/orders`
-- [ ] test request lặp
+- [x] Thiết kế `Idempotency-Key`
+- [x] Lưu idempotency record
+- [x] Trả response cũ nếu request trùng
+- [x] Áp dụng cho `POST /api/orders`
+- [x] test request lặp bằng unit test
 
 ### Done khi
 
 - gửi 2 request cùng key chỉ tạo 1 order
 
+### Đã làm
+
+- `POST /api/orders` bắt buộc header `Idempotency-Key`.
+- Thiếu header trả `400 Bad Request`.
+- Cùng `userId + Idempotency-Key + body` trả lại `OrderResponse` cũ.
+- Cùng `userId + Idempotency-Key` nhưng body khác trả `409 Conflict`.
+- Record `PROCESSING` được ghi trước khi reserve inventory để chặn double-click đồng thời.
+- Record `COMPLETED` lưu response JSON để request lặp không reserve và không tạo order mới.
+- TTL hiện tại là 24 giờ; record hết hạn được xóa khi key đó được dùng lại.
+
+### Bằng chứng
+
+- `mvn -pl order-service test` pass 14 tests.
+- `mvn -pl order-service -am clean package` pass.
+- IDE full rebuild pass.
+
+### Còn cần test thủ công
+
+- Bật Docker Desktop.
+- Chạy `docker compose --profile platform up -d --build order-service gateway`.
+- Gửi 2 request cùng `Idempotency-Key` qua Gateway và kiểm tra chỉ tạo 1 order.
+
 ### Trạng thái hiện tại
 
-- `TODO`
+- `IN PROGRESS - code và unit test đã xong, còn Docker E2E`
 
 ---
 
@@ -729,10 +751,10 @@ Mỗi khi xong một phase hoặc sub-phase, cập nhật 3 thứ:
 
 ### Đang làm
 
+- [ ] Phase 9
 
 ### Chưa làm
 
-- [ ] Phase 9
 - [ ] Phase 10
 - [ ] Phase 11
 - [ ] Phase 12
@@ -744,7 +766,7 @@ Mỗi khi xong một phase hoặc sub-phase, cập nhật 3 thứ:
 
 ## 8. Bước tiếp theo ngay bây giờ
 
-1. Chốt thiết kế `Idempotency-Key` cho `POST /api/orders`.
-2. Tạo migration lưu idempotency record.
-3. Trả response cũ khi client gửi lại cùng key.
-4. Viết test request trùng không tạo thêm order.
+1. Bật Docker Desktop.
+2. Chạy lại platform stack.
+3. Test E2E `POST /api/orders` với cùng `Idempotency-Key`.
+4. Nếu E2E pass thì đánh dấu Phase 9 `DONE`, rồi sang Phase 10.

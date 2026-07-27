@@ -15,6 +15,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.time.LocalDateTime;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -36,7 +39,7 @@ class OrderControllerTest {
     void createShouldReturnOrder() throws Exception {
         LocalDateTime now = LocalDateTime.now();
 
-        Mockito.when(orderService.create(any()))
+        Mockito.when(orderService.create(any(), eq("order-key-123")))
                 .thenReturn(new OrderResponse(
                         1L,
                         "ORD-123",
@@ -50,6 +53,7 @@ class OrderControllerTest {
                 ));
 
         mockMvc.perform(post("/api/orders")
+                        .header("Idempotency-Key", "order-key-123")
                         .contentType("application/json")
                         .content(objectMapper.writeValueAsString(
                                 new CreateTestRequest(1L, 1001L, 2)
@@ -58,11 +62,28 @@ class OrderControllerTest {
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.orderNo").value("ORD-123"))
                 .andExpect(jsonPath("$.data.status").value("PENDING_PAYMENT"));
+
+        verify(orderService).create(any(), eq("order-key-123"));
+    }
+
+    @Test
+    void createShouldRejectMissingIdempotencyKey() throws Exception {
+        mockMvc.perform(post("/api/orders")
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(
+                                new CreateTestRequest(1L, 1001L, 2)
+                        )))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.message").value("Idempotency-Key không được để trống"));
+
+        verifyNoInteractions(orderService);
     }
 
     @Test
     void createShouldRejectInvalidQuantity() throws Exception {
         mockMvc.perform(post("/api/orders")
+                        .header("Idempotency-Key", "order-key-123")
                         .contentType("application/json")
                         .content(objectMapper.writeValueAsString(
                                 new CreateTestRequest(1L, 1001L, 0)
