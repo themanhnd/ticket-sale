@@ -36,7 +36,7 @@ class OrderControllerTest {
     void createShouldReturnOrder() throws Exception {
         LocalDateTime now = LocalDateTime.now();
 
-        Mockito.when(orderService.create(any()))
+        Mockito.when(orderService.create(any(), Mockito.eq("order-key-123")))
                 .thenReturn(new OrderResponse(
                         1L,
                         "ORD-123",
@@ -51,6 +51,7 @@ class OrderControllerTest {
 
         mockMvc.perform(post("/api/orders")
                         .contentType("application/json")
+                        .header("Idempotency-Key", "order-key-123")
                         .content(objectMapper.writeValueAsString(
                                 new CreateTestRequest(1L, 1001L, 2)
                         )))
@@ -63,6 +64,7 @@ class OrderControllerTest {
     @Test
     void createShouldRejectInvalidQuantity() throws Exception {
         mockMvc.perform(post("/api/orders")
+                        .header("Idempotency-Key", "order-key-123")
                         .contentType("application/json")
                         .content(objectMapper.writeValueAsString(
                                 new CreateTestRequest(1L, 1001L, 0)
@@ -108,6 +110,18 @@ class OrderControllerTest {
                 .andExpect(jsonPath("$.data.orderNo").value("ORD-123"))
                 .andExpect(jsonPath("$.data.status").value("PENDING_PAYMENT"))
                 .andExpect(jsonPath("$.data.expiresAt").exists());
+    }
+
+    @Test
+    void createShouldRejectMissingIdempotencyKey() throws Exception {
+        mockMvc.perform(post("/api/orders")
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(
+                                new CreateTestRequest(1L, 1001L, 2)
+                        )))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message")
+                        .value("Idempotency-Key không được để trống"));
     }
 
     private record CreateTestRequest(

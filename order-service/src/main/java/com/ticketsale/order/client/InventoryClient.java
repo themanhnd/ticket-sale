@@ -14,23 +14,14 @@ public class InventoryClient {
     private final RestClient restClient;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public InventoryClient(
-            RestClient.Builder restClientBuilder,
-            @Value("${inventory.service.base-url}") String inventoryBaseUrl
-    ) {
-        this.restClient = restClientBuilder
-                .baseUrl(inventoryBaseUrl)
-                .build();
+    public InventoryClient(RestClient.Builder restClientBuilder, @Value("${inventory.service.base-url}") String inventoryBaseUrl) {
+        this.restClient = restClientBuilder.baseUrl(inventoryBaseUrl).build();
     }
 
     // Giữ quantity vé của eventId trước khi order được lưu.
     public void reserve(Long eventId, Integer quantity) {
         try {
-            restClient.post()
-                    .uri("/api/inventories/{eventId}/reserve", eventId)
-                    .body(new ReserveInventoryRequest(quantity))
-                    .retrieve()
-                    .toBodilessEntity();
+            restClient.post().uri("/api/inventories/{eventId}/reserve", eventId).body(new ReserveInventoryRequest(quantity)).retrieve().toBodilessEntity();
         } catch (RestClientResponseException exception) {
             throw new IllegalArgumentException(extractMessage(exception), exception);
         }

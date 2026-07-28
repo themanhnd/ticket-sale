@@ -21,9 +21,15 @@ public class OrderController {
     // Nhận request tạo order từ frontend.
     @PostMapping
     public ApiResponse<OrderResponse> create(
-            @Valid @RequestBody CreateOrderRequest request
+            @Valid @RequestBody CreateOrderRequest request,
+            @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey
     ) {
-        return ApiResponse.ok(orderService.create(request));
+        if (idempotencyKey == null || idempotencyKey.isBlank()) {
+            throw new IllegalArgumentException(
+                    "Idempotency-Key không được để trống"
+            );
+        }
+        return ApiResponse.ok(orderService.create(request, idempotencyKey));
     }
 
     // Lấy order theo mã order public.
