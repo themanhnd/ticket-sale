@@ -11,6 +11,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.ticketsale.order.repository.IdempotencyRecordRepository;
 import com.ticketsale.order.repository.entity.IdempotencyRecordEntity;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ticketsale.order.repository.entity.IdempotencyStatus;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -28,17 +30,20 @@ public class OrderServiceImpl implements OrderService {
     private final OrderRepository orderRepository;
     private final InventoryClient inventoryClient;
     private final IdempotencyRecordRepository idempotencyRecordRepository;
+    private final ObjectMapper objectMapper;
     private static final long IDEMPOTENCY_TTL_HOURS = 24;
     private static final String ORDER_CREATE_SCOPE = "ORDER_CREATE";
 
     public OrderServiceImpl(
             OrderRepository orderRepository,
             InventoryClient inventoryClient,
-            IdempotencyRecordRepository idempotencyRecordRepository
+            IdempotencyRecordRepository idempotencyRecordRepository,
+            ObjectMapper objectMapper
     ) {
         this.orderRepository = orderRepository;
         this.inventoryClient = inventoryClient;
         this.idempotencyRecordRepository = idempotencyRecordRepository;
+        this.objectMapper = objectMapper;
     }
 
     // Tạo order chờ thanh toán. Phải giữ vé trước, rồi mới lưu order.
@@ -47,6 +52,7 @@ public class OrderServiceImpl implements OrderService {
     public OrderResponse create(CreateOrderRequest request, String idempotencyKey) {
         String ownerId = request.userId().toString();
         String requestHash = hashRequest(request);
+        LocalDateTime now = LocalDateTime.now();
         IdempotencyRecordEntity existingRecord = idempotencyRecordRepository
                 .findByScopeAndOwnerIdAndIdempotencyKey(
                         ORDER_CREATE_SCOPE,
@@ -54,21 +60,29 @@ public class OrderServiceImpl implements OrderService {
                         idempotencyKey.trim()
                 )
                 .orElse(null);
+        if (existingRecord != null && existingRecord.isExpired(now)) {
+            idempotencyRecordRepository.delete(existingRecord);
+            idempotencyRecordRepository.flush();
+            existingRecord = null;
+        }
 
         if (existingRecord != null && !existingRecord.getRequestHash().equals(requestHash)) {
             throw new IllegalArgumentException("Idempotency-Key đã được dùng cho request khác");
         }
 
+        if (existingRecord != null && existingRecord.getStatus() == IdempotencyStatus.COMPLETED) {
+            return readStoredResponse(existingRecord.getResponseBody());
+        }
+
         if (existingRecord != null) {
-            // ponytail: Tạm chặn request lặp cùng nội dung; bước sau sẽ trả response cũ.
-            throw new IllegalArgumentException("Idempotency-Key đã tồn tại");
+            throw new IllegalArgumentException("Request đang được xử lý");
         }
         IdempotencyRecordEntity record = new IdempotencyRecordEntity(
                 ORDER_CREATE_SCOPE,
                 ownerId,
                 idempotencyKey.trim(),
                 requestHash,
-                LocalDateTime.now().plusHours(IDEMPOTENCY_TTL_HOURS)
+                now.plusHours(IDEMPOTENCY_TTL_HOURS)
         );
 
         idempotencyRecordRepository.saveAndFlush(record);
@@ -79,10 +93,10 @@ public class OrderServiceImpl implements OrderService {
         LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(PAYMENT_TIMEOUT_MINUTES);
 
         OrderEntity entity = new OrderEntity(orderNo, request.userId(), request.eventId(), request.quantity(), expiresAt);
-
-        OrderEntity saved = orderRepository.save(entity);
-
-        return toResponse(saved);
+        OrderEntity saved = orderRepository.save(entity); // Lưu order vào DB trước khi lưu response idempotency.
+        OrderResponse response = toResponse(saved); // Tạo response trả về FE và dùng lại cho lần retry sau.
+        record.complete(writeResponseBody(response));
+        return response;
     }
 
     // Tìm order bằng mã public, không bắt frontend sử dụng ID database.
@@ -130,6 +144,24 @@ public class OrderServiceImpl implements OrderService {
                     "Không tạo được request hash",
                     exception
             );
+        }
+    }
+
+    // Đọc lại response JSON đã lưu để request retry nhận đúng kết quả cũ.
+    private OrderResponse readStoredResponse(String responseBody) {
+        try {
+            return objectMapper.readValue(responseBody, OrderResponse.class);
+        } catch (Exception exception) {
+            throw new IllegalStateException("Không đọc được response idempotency đã lưu", exception);
+        }
+    }
+
+    // Chuyển response tạo order thành JSON để lưu lại cho lần retry sau.
+    private String writeResponseBody(OrderResponse response) {
+        try {
+            return objectMapper.writeValueAsString(response);
+        } catch (Exception exception) {
+            throw new IllegalStateException("Không ghi được response idempotency", exception);
         }
     }
 }
