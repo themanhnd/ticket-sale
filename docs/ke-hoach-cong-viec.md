@@ -478,11 +478,11 @@ Tránh double click tạo nhiều order.
 
 ### Checklist
 
-- [ ] Thiết kế `Idempotency-Key`
-- [ ] Lưu idempotency record
-- [ ] Trả response cũ nếu request trùng
-- [ ] Áp dụng cho `POST /api/orders`
-- [ ] test request lặp
+- [x] Thiết kế `Idempotency-Key`
+- [x] Lưu idempotency record
+- [x] Trả response cũ nếu request trùng
+- [x] Áp dụng cho `POST /api/orders`
+- [x] Test request lặp
 
 ### Done khi
 
@@ -490,7 +490,12 @@ Tránh double click tạo nhiều order.
 
 ### Trạng thái hiện tại
 
-- `TODO`
+- `DONE`
+
+### Nợ kỹ thuật chuyển Phase 15
+
+- Chuyển lỗi unique key khi hai request đồng thời thành HTTP `409 Conflict`.
+- Bổ sung integration test concurrency với MySQL thật.
 
 ---
 
@@ -726,14 +731,14 @@ Mỗi khi xong một phase hoặc sub-phase, cập nhật 3 thứ:
 - [x] Phase 6
 - [x] Phase 7
 - [x] Phase 8
+- [x] Phase 9
 
 ### Đang làm
 
+- [ ] Phase 10
 
 ### Chưa làm
 
-- [ ] Phase 9
-- [ ] Phase 10
 - [ ] Phase 11
 - [ ] Phase 12
 - [ ] Phase 13
@@ -744,7 +749,8 @@ Mỗi khi xong một phase hoặc sub-phase, cập nhật 3 thứ:
 
 ## 8. Bước tiếp theo ngay bây giờ
 
-1. Chốt thiết kế `Idempotency-Key` cho `POST /api/orders`.
-2. Tạo migration lưu idempotency record.
-3. Trả response cũ khi client gửi lại cùng key.
-4. Viết test request trùng không tạo thêm order.
+1. Chốt thiết kế `payment-service`.
+2. Tạo migration bảng `payments`.
+3. Tạo API khởi tạo payment.
+4. Tạo API mô phỏng thanh toán thành công/thất bại.
+5. Nối config, gateway và Docker local.
